@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect,useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaHouse } from "react-icons/fa6";
 
@@ -12,7 +12,8 @@ function Dashboard() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [editingRecord, setEditingRecord] = useState(null);
+   const formRef = useRef(null)
   // Get records from backend
   useEffect(() => {
     const fetchRecords = async () => {
@@ -99,6 +100,46 @@ function Dashboard() {
     alert("Failed to delete record");
   }
 };
+const handleEditRecord =(record)=>{
+setEditingRecord(record)
+setTimeout(()=>{
+  formRef.current?.scrollIntoView({
+    behavior :"smooth",
+    block :"start"
+  })
+},100)
+}
+const handleUpdateRecord = async (id, updatedRecord) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/records/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedRecord),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update record");
+    }
+
+    const data = await response.json();
+
+    setRecords((prevRecords) =>
+      prevRecords.map((record) =>
+        record._id === id ? data.record : record
+      )
+    );
+
+    setEditingRecord(null);
+  } catch (error) {
+    console.error("Update error:", error);
+    alert("Failed to update record");
+  }
+};
   // Logout
   const handleLogout = () => {
     localStorage.removeItem("loggedInAdmin");
@@ -172,11 +213,19 @@ function Dashboard() {
             <SummaryCards records={records} />
 
             {/* FORM */}
-            <RecordForm onAddRecord={handleAddRecord} />
+    <div ref={formRef}>
+          <RecordForm
+  onAddRecord={handleAddRecord}
+  editingRecord={editingRecord}
+  onUpdateRecord={handleUpdateRecord}
+  onCancelEdit={() => setEditingRecord(null)}
+/>
+    </div>
 
             {/* TABLE */}
             <RecordsTable records={records}
-            onDelete={handleDeleteRecord} />
+            onDelete={handleDeleteRecord}
+            onEdit={handleEditRecord} />
           </>
         )}
 

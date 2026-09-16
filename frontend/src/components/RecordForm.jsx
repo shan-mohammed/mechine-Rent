@@ -11,17 +11,34 @@ function RecordForm({ onAddRecord, editingRecord, onUpdateRecord, onCancelEdit }
   });
 
   // When Edit is clicked, load that record into the form
-  useEffect(() => {
-    if (editingRecord) {
-      setFormData({
-        date: editingRecord.date || "",
-        description: editingRecord.description || "",
-        rent: editingRecord.rent ?? "",
-        expense: editingRecord.expense ?? "",
-        expenseDescription: editingRecord.expenseDescription || "",
-      });
+useEffect(() => {
+  if (editingRecord) {
+    let formattedDate = "";
+
+    if (editingRecord.date) {
+      const parts = editingRecord.date.split("/");
+
+      if (parts.length === 3) {
+        const [day, month, year] = parts;
+
+        formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(
+          2,
+          "0"
+        )}`;
+      } else {
+        formattedDate = editingRecord.date;
+      }
     }
-  }, [editingRecord]);
+
+    setFormData({
+      date: formattedDate,
+      description: editingRecord.description || "",
+      rent: editingRecord.rent ?? "",
+      expense: editingRecord.expense ?? "",
+      expenseDescription: editingRecord.expenseDescription || "",
+    });
+  }
+}, [editingRecord]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
